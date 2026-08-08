@@ -66,9 +66,11 @@ if (LINUX)
     find_package(OpenGL REQUIRED)
 
     if ((NOT DBUS_FOUND) OR (NOT GLEW_FOUND) OR (NOT glfw3_FOUND) OR (NOT OPENGL_FOUND))
-        message ( FATAL_ERROR 
+        message ( FATAL_ERROR
         "Didn't find one of the packages. For Debian based systems, use:"
-        "sudo apt install libbluetooth-dev libglew-dev libglfw3-dev libdbus-1-dev" )
+        "sudo apt install libbluetooth-dev libglew-dev libglfw3-dev libdbus-1-dev"
+        " For Fedora, use: sudo dnf install bluez-libs-devel glew-devel glfw-devel dbus-devel"
+        " For Arch Linux, use: sudo pacman -S bluez-libs glew glfw-x11 dbus" )
     endif ()
 
     target_include_directories(SonyHeadphonesClient
