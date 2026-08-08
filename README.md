@@ -125,7 +125,7 @@ sudo dnf install bluez-libs-devel glew-devel glfw-devel dbus-devel
 
 Arch Linux:
 ```bash
-sudo pacman -S bluez-libs glew glfw-x11 dbus
+sudo pacman -S bluez-libs glew glfw dbus
 ```
 
 #### macOS

@@ -70,7 +70,7 @@ if (LINUX)
         "Didn't find one of the packages. For Debian based systems, use:"
         "sudo apt install libbluetooth-dev libglew-dev libglfw3-dev libdbus-1-dev"
         " For Fedora, use: sudo dnf install bluez-libs-devel glew-devel glfw-devel dbus-devel"
-        " For Arch Linux, use: sudo pacman -S bluez-libs glew glfw-x11 dbus" )
+        " For Arch Linux, use: sudo pacman -S bluez-libs glew glfw dbus" )
     endif ()
 
     target_include_directories(SonyHeadphonesClient

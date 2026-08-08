@@ -1,4 +1,5 @@
 #include "CommandSerializer.h"
+#include <cstdint>
 
 constexpr unsigned char ESCAPED_BYTE_SENTRY = 61;
 constexpr unsigned char ESCAPED_60 = 44;
@@ -141,6 +142,15 @@ namespace CommandSerializer
 		if (unescaped.size() < 7)
 		{
 			throw std::runtime_error("Invalid message: Smaller than the minimum message size");
+		}
+
+		uint32_t declaredDataSize = (static_cast<uint32_t>(unescaped[2]) << 24) |
+			(static_cast<uint32_t>(unescaped[3]) << 16) |
+			(static_cast<uint32_t>(unescaped[4]) << 8) |
+			static_cast<uint32_t>(unescaped[5]);
+		if (declaredDataSize != unescaped.size() - 7)
+		{
+			throw std::runtime_error("Invalid message: Declared data size doesn't match actual data size");
 		}
 
 		Message ret;
