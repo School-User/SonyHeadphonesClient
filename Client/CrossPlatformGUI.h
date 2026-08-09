@@ -36,12 +36,14 @@ private:
 	void _drawASMControls();
 	void _drawSurroundControls();
 	void _setHeadphoneSettings();
+	void _drawDeviceStatus();
 
 	BluetoothDevice _connectedDevice;
 	BluetoothWrapper _bt;
 	SingleInstanceFuture<std::vector<BluetoothDevice>> _connectedDevicesFuture;
 	SingleInstanceFuture<void> _sendCommandFuture;
 	SingleInstanceFuture<void> _connectFuture;
+	SingleInstanceFuture<void> _refreshStatusFuture;
 	TimedMessageQueue _mq;
 	Headphones _headphones;
 };

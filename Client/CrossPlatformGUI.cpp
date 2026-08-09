@@ -26,6 +26,7 @@ bool CrossPlatformGUI::performGUIPass()
 		if (this->_bt.isConnected())
 		{
 			ImGui::Spacing();
+			this->_drawDeviceStatus();
 			this->_drawASMControls();
 			this->_drawSurroundControls();
 			this->_setHeadphoneSettings();
@@ -249,6 +250,60 @@ void CrossPlatformGUI::_setHeadphoneSettings() {
 		this->_sendCommandFuture.setFromAsync([=, this]() {
 			return this->_headphones.setChanges();
 		});
+	}
+}
+
+void CrossPlatformGUI::_drawDeviceStatus()
+{
+	if (ImGui::CollapsingHeader("Device Status   ", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		if (this->_refreshStatusFuture.ready())
+		{
+			try
+			{
+				this->_refreshStatusFuture.get();
+			}
+			catch (const RecoverableException& exc)
+			{
+				if (exc.shouldDisconnect)
+				{
+					this->_bt.disconnect();
+				}
+				this->_mq.addMessage(exc.what());
+			}
+		}
+
+		if (this->_refreshStatusFuture.valid())
+		{
+			ImGui::Text("Reading device status %c", "|/-\\"[(int)(ImGui::GetTime() / 0.05f) & 3]);
+		}
+		else if (this->_headphones.hasDeviceStatus())
+		{
+			auto battery = this->_headphones.getBatteryStatus();
+			auto ncAsm = this->_headphones.getNcAsmStatus();
+			auto vpt = this->_headphones.getVptStatus();
+
+			ImGui::Text("Battery: %d%%%s", battery.level, battery.charging ? " (charging)" : "");
+			ImGui::Text("Ambient Sound Control: %s", ncAsm.ambientSoundControlOn ? "On" : "Off");
+			ImGui::Text("Focus on Voice: %s", ncAsm.focusOnVoice ? "On" : "Off");
+			ImGui::Text("Ambient Sound Level: %d", ncAsm.asmLevel);
+			ImGui::Text("Surround/VPT preset: %d (%s)", vpt.preset,
+				vpt.type == VPT_INQUIRED_TYPE::SOUND_POSITION ? "Sound Position" :
+				vpt.type == VPT_INQUIRED_TYPE::VPT ? "VPT" : "Off");
+
+			if (ImGui::Button("Refresh"))
+			{
+				this->_refreshStatusFuture.setFromAsync([this]() { this->_headphones.refreshDeviceStatus(); });
+			}
+		}
+		else
+		{
+			ImGui::TextWrapped("Reading device status is unverified on real hardware and may not work for your headset.");
+			if (ImGui::Button("Fetch device status"))
+			{
+				this->_refreshStatusFuture.setFromAsync([this]() { this->_headphones.refreshDeviceStatus(); });
+			}
+		}
 	}
 }
 

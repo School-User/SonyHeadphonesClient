@@ -85,8 +85,40 @@ enum class NC_DUAL_SINGLE_VALUE : signed char
 
 enum class COMMAND_TYPE : signed char
 {
+	COMMON_GET_BATTERY_LEVEL = 16,
+	COMMON_RET_BATTERY_LEVEL = 17,
+	COMMON_NTFY_BATTERY_LEVEL = 19,
+	VPT_GET_PARAM = 70,
+	VPT_RET_PARAM = 71,
 	VPT_SET_PARAM = 72,
-	NCASM_SET_PARAM = 104
+	VPT_NTFY_PARAM = 73,
+	NC_ASM_GET_PARAM = 102,
+	NC_ASM_RET_PARAM = 103,
+	NCASM_SET_PARAM = 104,
+	NC_ASM_NTFY_PARAM = 105
+};
+
+//Sony's MDR protocol distinguishes single-battery headphones (BATTERY), true wireless earbuds
+//with separate left/right batteries (LEFT_RIGHT_BATTERY), and charging cases (CRADLE_BATTERY).
+//Only BATTERY (single) is implemented here, since the supported headsets are all single-battery.
+enum class BATTERY_INQUIRED_TYPE : signed char
+{
+	BATTERY = 0,
+	LEFT_RIGHT_BATTERY = 1,
+	CRADLE_BATTERY = 2
+};
+
+struct BatteryStatus
+{
+	unsigned char level;
+	bool charging;
+};
+
+struct NcAsmStatus
+{
+	bool ambientSoundControlOn;
+	bool focusOnVoice;
+	unsigned char asmLevel;
 };
 
 enum class VPT_PRESET_ID : signed char
@@ -127,4 +159,10 @@ enum class VPT_INQUIRED_TYPE : signed char
 	VPT = 1,
 	SOUND_POSITION = 2,
 	OUT_OF_RANGE = -1
+};
+
+struct VptStatus
+{
+	VPT_INQUIRED_TYPE type;
+	unsigned char preset;
 };

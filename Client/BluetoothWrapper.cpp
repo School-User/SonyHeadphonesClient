@@ -28,9 +28,29 @@ int BluetoothWrapper::sendCommand(const std::vector<char>& bytes)
 	auto data = CommandSerializer::packageDataForBt(bytes, DATA_TYPE::DATA_MDR, this->_seqNumber++);
 	auto bytesSent = this->_connector->send(data.data(), data.size());
 
-	this->_waitForAck();
+	this->_receiveMessage();
 
 	return bytesSent;
+}
+
+Buffer BluetoothWrapper::sendCommandAndGetResponse(const Buffer& bytes, COMMAND_TYPE expectedResponseType)
+{
+	constexpr int MAX_MESSAGES_TO_SKIP = 5;
+
+	std::lock_guard guard(this->_connectorMtx);
+	auto data = CommandSerializer::packageDataForBt(bytes, DATA_TYPE::DATA_MDR, this->_seqNumber++);
+	this->_connector->send(data.data(), data.size());
+
+	for (int i = 0; i < MAX_MESSAGES_TO_SKIP; i++)
+	{
+		auto msg = this->_receiveMessage();
+		if (!msg.data.empty() && static_cast<COMMAND_TYPE>(msg.data[0]) == expectedResponseType)
+		{
+			return msg.data;
+		}
+	}
+
+	throw RecoverableException("Timed out waiting for a response to an inquiry", false);
 }
 
 bool BluetoothWrapper::isConnected() noexcept
@@ -57,7 +77,7 @@ std::vector<BluetoothDevice> BluetoothWrapper::getConnectedDevices()
 	return this->_connector->getConnectedDevices();
 }
 
-void BluetoothWrapper::_waitForAck()
+CommandSerializer::Message BluetoothWrapper::_receiveMessage()
 {
 	bool ongoingMessage = false;
 	bool messageFinished = false;
@@ -94,5 +114,6 @@ void BluetoothWrapper::_waitForAck()
 
 	auto msg = CommandSerializer::unpackBtMessage(msgBytes);
 	this->_seqNumber = msg.seqNumber;
+	return msg;
 }
 

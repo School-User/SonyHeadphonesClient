@@ -160,6 +160,7 @@ namespace CommandSerializer
 		{
 			throw RecoverableException("Invalid checksum!", true);
 		}
+		ret.data.assign(unescaped.begin() + 6, unescaped.end() - 1);
 		return ret;
 	}
 
@@ -202,6 +203,75 @@ namespace CommandSerializer
 		ret.push_back(static_cast<unsigned char>(type));
 		ret.push_back(preset);
 
+		return ret;
+	}
+
+	Buffer serializeBatteryInquiry(BATTERY_INQUIRED_TYPE type)
+	{
+		Buffer ret;
+		ret.push_back(static_cast<unsigned char>(COMMAND_TYPE::COMMON_GET_BATTERY_LEVEL));
+		ret.push_back(static_cast<unsigned char>(type));
+		return ret;
+	}
+
+	Buffer serializeNcAndAsmInquiry()
+	{
+		Buffer ret;
+		ret.push_back(static_cast<unsigned char>(COMMAND_TYPE::NC_ASM_GET_PARAM));
+		ret.push_back(static_cast<unsigned char>(NC_ASM_INQUIRED_TYPE::NOISE_CANCELLING_AND_AMBIENT_SOUND_MODE));
+		ret.push_back(static_cast<unsigned char>(NC_ASM_SETTING_TYPE::LEVEL_ADJUSTMENT));
+		return ret;
+	}
+
+	Buffer serializeVptInquiry()
+	{
+		Buffer ret;
+		ret.push_back(static_cast<unsigned char>(COMMAND_TYPE::VPT_GET_PARAM));
+		return ret;
+	}
+
+	//Response payload: <COMMAND_TYPE><BATTERY_INQUIRED_TYPE><LEVEL><CHARGING>. Only the single-battery
+	//(BATTERY) inquired type is handled; LEFT_RIGHT_BATTERY/CRADLE_BATTERY use a different layout.
+	BatteryStatus parseBatteryLevel(const Buffer& payload)
+	{
+		if (payload.size() < 4)
+		{
+			throw std::runtime_error("Invalid battery status payload");
+		}
+
+		BatteryStatus ret;
+		ret.level = static_cast<unsigned char>(payload[2]);
+		ret.charging = payload[3] != 0;
+		return ret;
+	}
+
+	//Response payload mirrors serializeNcAndAsmSetting's SET_PARAM layout:
+	//<COMMAND_TYPE><NC_ASM_INQUIRED_TYPE><NC_ASM_EFFECT><NC_ASM_SETTING_TYPE><NC_DUAL_SINGLE_VALUE><ASM_SETTING_TYPE><ASM_ID><LEVEL>
+	NcAsmStatus parseNcAndAsmSetting(const Buffer& payload)
+	{
+		if (payload.size() < 8)
+		{
+			throw std::runtime_error("Invalid NC/ASM status payload");
+		}
+
+		NcAsmStatus ret;
+		ret.ambientSoundControlOn = static_cast<NC_ASM_EFFECT>(payload[2]) != NC_ASM_EFFECT::OFF;
+		ret.focusOnVoice = static_cast<ASM_ID>(payload[6]) == ASM_ID::VOICE;
+		ret.asmLevel = static_cast<unsigned char>(payload[7]);
+		return ret;
+	}
+
+	//Response payload mirrors serializeVPTSetting's SET_PARAM layout: <COMMAND_TYPE><VPT_INQUIRED_TYPE><PRESET>
+	VptStatus parseVptSetting(const Buffer& payload)
+	{
+		if (payload.size() < 3)
+		{
+			throw std::runtime_error("Invalid VPT status payload");
+		}
+
+		VptStatus ret;
+		ret.type = static_cast<VPT_INQUIRED_TYPE>(payload[1]);
+		ret.preset = static_cast<unsigned char>(payload[2]);
 		return ret;
 	}
 
