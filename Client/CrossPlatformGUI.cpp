@@ -70,6 +70,7 @@ void CrossPlatformGUI::_drawDeviceDiscovery()
 			{
 				selectedDevice = -1;
 				this->_bt.disconnect();
+				this->_headphones.resetDeviceStatus();
 			}
 		}
 		else
@@ -97,6 +98,7 @@ void CrossPlatformGUI::_drawDeviceDiscovery()
 						if (exc.shouldDisconnect)
 						{
 							this->_bt.disconnect();
+							this->_headphones.resetDeviceStatus();
 						}
 						this->_mq.addMessage(exc.what());
 					}
@@ -133,6 +135,7 @@ void CrossPlatformGUI::_drawDeviceDiscovery()
 						if (exc.shouldDisconnect)
 						{
 							this->_bt.disconnect();
+							this->_headphones.resetDeviceStatus();
 						}
 						this->_mq.addMessage(exc.what());
 					}
@@ -231,6 +234,7 @@ void CrossPlatformGUI::_setHeadphoneSettings() {
 			if (exc.shouldDisconnect)
 			{
 				this->_bt.disconnect();
+				this->_headphones.resetDeviceStatus();
 				excString = "Disconnected due to: ";
 			}
 			this->_mq.addMessage(excString + exc.what());
@@ -268,7 +272,14 @@ void CrossPlatformGUI::_drawDeviceStatus()
 				if (exc.shouldDisconnect)
 				{
 					this->_bt.disconnect();
+					this->_headphones.resetDeviceStatus();
 				}
+				this->_mq.addMessage(exc.what());
+			}
+			catch (const std::exception& exc)
+			{
+				//The status parsers throw plain std::runtime_error for malformed/unexpected responses,
+				//which is expected given the inquiry protocol is unverified against real hardware.
 				this->_mq.addMessage(exc.what());
 			}
 		}

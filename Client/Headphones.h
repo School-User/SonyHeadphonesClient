@@ -41,6 +41,9 @@ public:
 	//Meant to be called from a background thread/future, not the UI thread.
 	//NOTE: the underlying inquiry commands are unverified against real hardware - see CommandSerializer.h.
 	void refreshDeviceStatus();
+	//Clears the cached battery/NC-ASM/VPT status. Call on disconnect so a stale reading from a
+	//previous headset isn't shown after connecting to a different (or the same) device again.
+	void resetDeviceStatus();
 	bool hasDeviceStatus();
 	BatteryStatus getBatteryStatus();
 	NcAsmStatus getNcAsmStatus();

@@ -208,6 +208,12 @@ namespace CommandSerializer
 
 	Buffer serializeBatteryInquiry(BATTERY_INQUIRED_TYPE type)
 	{
+		//parseBatteryLevel only understands the BATTERY (single-battery) response layout.
+		if (type != BATTERY_INQUIRED_TYPE::BATTERY)
+		{
+			throw std::runtime_error("Only the BATTERY inquiry type is currently supported");
+		}
+
 		Buffer ret;
 		ret.push_back(static_cast<unsigned char>(COMMAND_TYPE::COMMON_GET_BATTERY_LEVEL));
 		ret.push_back(static_cast<unsigned char>(type));
@@ -237,6 +243,10 @@ namespace CommandSerializer
 		if (payload.size() < 4)
 		{
 			throw std::runtime_error("Invalid battery status payload");
+		}
+		if (static_cast<BATTERY_INQUIRED_TYPE>(payload[1]) != BATTERY_INQUIRED_TYPE::BATTERY)
+		{
+			throw std::runtime_error("Unsupported battery inquiry type in response");
 		}
 
 		BatteryStatus ret;

@@ -158,6 +158,15 @@ void Headphones::refreshDeviceStatus()
 	this->_hasDeviceStatus = true;
 }
 
+void Headphones::resetDeviceStatus()
+{
+	std::lock_guard guard(this->_deviceStatusMtx);
+	this->_hasDeviceStatus = false;
+	this->_battery = {};
+	this->_ncAsmStatus = {};
+	this->_vptStatus = {};
+}
+
 bool Headphones::hasDeviceStatus()
 {
 	std::lock_guard guard(this->_deviceStatusMtx);
