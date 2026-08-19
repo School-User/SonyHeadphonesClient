@@ -133,3 +133,60 @@ void Headphones::setChanges()
 		this->_surroundPosition.fulfill();
 	}
 }
+
+void Headphones::refreshDeviceStatus()
+{
+	auto battery = CommandSerializer::parseBatteryLevel(this->_conn.sendCommandAndGetResponse(
+		CommandSerializer::serializeBatteryInquiry(BATTERY_INQUIRED_TYPE::BATTERY),
+		COMMAND_TYPE::COMMON_RET_BATTERY_LEVEL
+	));
+
+	auto ncAsm = CommandSerializer::parseNcAndAsmSetting(this->_conn.sendCommandAndGetResponse(
+		CommandSerializer::serializeNcAndAsmInquiry(),
+		COMMAND_TYPE::NC_ASM_RET_PARAM
+	));
+
+	auto vpt = CommandSerializer::parseVptSetting(this->_conn.sendCommandAndGetResponse(
+		CommandSerializer::serializeVptInquiry(),
+		COMMAND_TYPE::VPT_RET_PARAM
+	));
+
+	std::lock_guard guard(this->_deviceStatusMtx);
+	this->_battery = battery;
+	this->_ncAsmStatus = ncAsm;
+	this->_vptStatus = vpt;
+	this->_hasDeviceStatus = true;
+}
+
+void Headphones::resetDeviceStatus()
+{
+	std::lock_guard guard(this->_deviceStatusMtx);
+	this->_hasDeviceStatus = false;
+	this->_battery = {};
+	this->_ncAsmStatus = {};
+	this->_vptStatus = {};
+}
+
+bool Headphones::hasDeviceStatus()
+{
+	std::lock_guard guard(this->_deviceStatusMtx);
+	return this->_hasDeviceStatus;
+}
+
+BatteryStatus Headphones::getBatteryStatus()
+{
+	std::lock_guard guard(this->_deviceStatusMtx);
+	return this->_battery;
+}
+
+NcAsmStatus Headphones::getNcAsmStatus()
+{
+	std::lock_guard guard(this->_deviceStatusMtx);
+	return this->_ncAsmStatus;
+}
+
+VptStatus Headphones::getVptStatus()
+{
+	std::lock_guard guard(this->_deviceStatusMtx);
+	return this->_vptStatus;
+}

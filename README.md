@@ -61,7 +61,7 @@ So I reverse-engineered the application (for intercompatibility purposes, of cou
 - [x] Ambient Sound Control
 - [x] Disabling noise cancelling
 - [x] Virtual Sound - VPT and Sound Position
-- [ ] Display battery life and fetch existing settings from device
+- [x] Display battery life and fetch existing settings from device (best-effort implementation based on public protocol reverse-engineering; not yet verified against real hardware, so results may be wrong or the request may fail on some headsets - feedback welcome)
 - [ ] Equalizer
 
 ## Supported Platforms And Headsets

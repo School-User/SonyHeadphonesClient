@@ -23,6 +23,12 @@ public:
 
 	int sendCommand(const std::vector<char>& bytes);
 
+	//Sends a command and waits (skipping over any unrelated messages, up to a small limit) for a
+	//response whose first payload byte matches expectedResponseType. Used for inquiry commands
+	//(battery, current NC/ASM and VPT settings) where the device replies with a distinct RET_PARAM
+	//message rather than a plain ACK.
+	Buffer sendCommandAndGetResponse(const Buffer& bytes, COMMAND_TYPE expectedResponseType);
+
 	bool isConnected() noexcept;
 	//Try to connect to the headphones
 	void connect(const std::string& addr);
@@ -31,7 +37,7 @@ public:
 	std::vector<BluetoothDevice> getConnectedDevices();
 
 private:
-	void _waitForAck();
+	CommandSerializer::Message _receiveMessage();
 
 	std::unique_ptr<IBluetoothConnector> _connector;
 	std::mutex _connectorMtx;
